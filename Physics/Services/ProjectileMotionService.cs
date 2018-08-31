@@ -1,5 +1,6 @@
 ﻿using Physics.Models;
 using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 
@@ -16,6 +17,7 @@ namespace Physics.Services
         /// <param name="angle">measured in degrees.</param>
         /// <param name="projectile">the projectile to calculate a trajectory for.</param>
         /// <param name="initialHeight">the height of the projectile being launched from.</param>
+        /// <param name="trajectorySteps">the amount of steps a trajectory needs to be calculated for.</param>
         public static Trajectory CalculateTrajectory(IProjectile projectile, double velocity, double angle, double initialHeight = 0, double trajectorySteps = 50)
         {
             VectorCollection vectors = new VectorCollection(); // vectors of trajectory
@@ -29,20 +31,16 @@ namespace Physics.Services
             {
                 totalTime = (velocity * 2 * Math.Sin(angle)) / gravity; // seconds in air
                 distance = ((velocity * velocity) / gravity) * Math.Sin(angle * 2); // meters travelled over X-axis
-                for (double currentTime = 0; currentTime <= totalTime; currentTime += (totalTime / trajectorySteps))
-                {
-                    vectors.Add(CalculateVectorFor(velocity, angle, initialHeight, vectors, currentTime));
-                }
-                //vectors.Add(CalculateVectorFor(velocity, angle, initialHeight, vectors, totalTime));
             }
             else // uneven ground
             {
                 totalTime = (velocity * Math.Sin(angle) + temp) / gravity; // seconds in air
                 distance = (velocity * Math.Cos(angle) / gravity) * ((velocity * Math.Sin(angle)) + temp); // meters travelled over X-axis
-                for (double currentTime = 0; currentTime <= totalTime; currentTime += (totalTime / trajectorySteps))
-                {
-                    vectors.Add(CalculateVectorFor(velocity, angle, initialHeight, vectors, currentTime));
-                }
+            }
+            double stepper = totalTime / trajectorySteps;
+            for (double currentTime = 0; Math.Round(currentTime, 10) <= Math.Round(totalTime, 10); currentTime += stepper)
+            {
+                vectors.Add(CalculateVectorFor(velocity, angle, initialHeight, vectors, currentTime));
             }
             double impactAngle = (180 * Math.Atan(temp / (velocity * Math.Cos(angle)))) / Math.PI;
             return new Trajectory(vectors, Math.Round(totalTime, 4), Math.Round(impactAngle, 4), Math.Round(distance, 4));

@@ -13,91 +13,75 @@ namespace Physics
         public MainWindow()
         {
             InitializeComponent();
-
-            #region Code
-            //Trajectory trajectoryEven = Services.ProjectileMotionService.CalculateTrajectory(new Cannonball(), 10, 45, 0, 50);
-            //DisplayTrajectory(trajectoryEven, 50);
-
-            Trajectory trajectoryUnEven = Services.ProjectileMotionService.CalculateTrajectory(new Cannonball(), 10, 45, 10, 50);
-            Debug.WriteLine("-- Calculating trajectory for a Cannonball --");
-            Debug.WriteLine($"-- Velocity: 10 m/s, Angle: 45 degrees, Initial height: 10 meters, Vector steps: 50 --");
-            DisplayTrajectory(trajectoryUnEven, 50);
-            #endregion Code
-
             NameScope.SetNameScope(this, new NameScope());
 
-            // Create the EllipseGeometry to animate.
-            EllipseGeometry animatedCannonBallGeometry = new EllipseGeometry(new Point(0, 100), 15, 15);
+            Trajectory trajectoryEven = Services.ProjectileMotionService.CalculateTrajectory(new Cannonball(), 10, 45, 0, 50);
+            Trajectory trajectoryUnEven = Services.ProjectileMotionService.CalculateTrajectory(new Cannonball(), 10, 45, 10, 50);
 
-            // Register the EllipseGeometry's name with
-            // the page so that it can be targeted by a
-            // storyboard.
-            this.RegisterName("AnimatedCannonBallGeometry", animatedCannonBallGeometry);
+            DisplayTrajectory(trajectoryEven, 10, 45, 0, 50);
+            DisplayTrajectory(trajectoryUnEven, 10, 45, 10, 50);
 
-            // Create a Path element to display the geometry.
-            Path cannonBallPath = new Path
+            AnimateTrajectory(trajectoryEven, "Even", Brushes.Black);
+            AnimateTrajectory(trajectoryUnEven, "Uneven", Brushes.Green);
+        }
+
+        private void AnimateTrajectory(Trajectory trajectory, string identifier, Brush brush)
+        {
+            EllipseGeometry animatedObjectGeometry = new EllipseGeometry(new Point(0, trajectory.Vectors[0].Y * 10), 10, 10);
+            RegisterName("AnimatedObjectGeometry"+ identifier, animatedObjectGeometry);
+
+            Path objectPath = new Path
             {
-                Data = animatedCannonBallGeometry,
-                Fill = Brushes.Black,
-                Margin = new Thickness(15)
+                Data = animatedObjectGeometry,
+                Fill = brush,
+                Margin = new Thickness(10)
             };
+            cvField.Children.Add(objectPath);
 
-            // Create a Canvas to contain ellipsePath
-            // and add it to the page.
-            cvField.Children.Add(cannonBallPath);
-
-            // Create the animation path.
             PathGeometry animationPath = new PathGeometry();
-            PathFigure pFigure = new PathFigure();
-            pFigure.StartPoint = new Point(0, 100);
+            PathFigure pFigure = new PathFigure
+            {
+                StartPoint = new Point(0, trajectory.Vectors[0].Y * 10)
+            };
             PolyBezierSegment pBezierSegment = new PolyBezierSegment();
-            foreach (Vector item in trajectoryUnEven.Vectors)
+            foreach (Vector item in trajectory.Vectors)
             {
                 pBezierSegment.Points.Add(new Point(item.X * 10, item.Y * 10));
             }
             pFigure.Segments.Add(pBezierSegment);
             animationPath.Figures.Add(pFigure);
 
-            // Freeze the PathGeometry for performance benefits.
             animationPath.Freeze();
 
-            // Create a PointAnimationgUsingPath to move
-            // the EllipseGeometry along the animation path.
             PointAnimationUsingPath centerPointAnimation = new PointAnimationUsingPath
             {
                 PathGeometry = animationPath,
-                Duration = TimeSpan.FromSeconds(trajectoryUnEven.AirTime)
-                //RepeatBehavior = RepeatBehavior.Forever
+                Duration = TimeSpan.FromSeconds(trajectory.AirTime)
             };
 
-            // Set the animation to target the Center property
-            // of the EllipseGeometry named "AnimatedEllipseGeometry".
-            Storyboard.SetTargetName(centerPointAnimation, "AnimatedCannonBallGeometry");
+            Storyboard.SetTargetName(centerPointAnimation, "AnimatedObjectGeometry" + identifier);
             Storyboard.SetTargetProperty(centerPointAnimation, new PropertyPath(EllipseGeometry.CenterProperty));
 
-            // Create a Storyboard to contain and apply the animation.
             Storyboard pathAnimationStoryboard = new Storyboard
             {
                 RepeatBehavior = RepeatBehavior.Forever
-                //AutoReverse = true
             };
             pathAnimationStoryboard.Children.Add(centerPointAnimation);
 
-            // Start the Storyboard when ellipsePath is loaded.
-            cannonBallPath.Loaded += delegate (object sender, RoutedEventArgs e)
+            objectPath.Loaded += delegate (object sender, RoutedEventArgs e)
             {
-                // Start the storyboard.
                 pathAnimationStoryboard.Begin(this);
             };
         }
-
-        private static void DisplayTrajectory(Trajectory trajectoryEven, double trajectorySteps = 50)
+        private static void DisplayTrajectory(Trajectory trajectory, double velocity, double angle, double initialHeight = 0, double trajectorySteps = 50)
         {
-            Debug.WriteLine($"Distance travelled: {trajectoryEven.Distance}m, Total time spent in air: {trajectoryEven.AirTime}s, Angle of impact: {trajectoryEven.ImpactAngle} degrees.");
+            Debug.WriteLine("-- Calculating trajectory --");
+            Debug.WriteLine($"-- Velocity: {velocity} m/s, Angle: {angle} degrees, Initial height: {initialHeight} meters, Vector steps: {trajectorySteps} --");
+            Debug.WriteLine($"Distance travelled: {trajectory.Distance}m, Total time spent in air: {trajectory.AirTime}s, Angle of impact: {trajectory.ImpactAngle} degrees.");
             double x = 0;
-            foreach (Vector item in trajectoryEven.Vectors)
+            foreach (Vector item in trajectory.Vectors)
             {
-                Debug.WriteLine($"X: {item.X}, Y: {item.Y}, Current time in air: {x++ * (trajectoryEven.AirTime / trajectorySteps)}s");
+                Debug.WriteLine($"{x}: X: {item.X}, Y: {item.Y}, Current time in air: {x++ * (trajectory.AirTime / trajectorySteps)}s");
             }
         }
     }
