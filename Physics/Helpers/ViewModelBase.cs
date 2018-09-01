@@ -1,14 +1,17 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using Physics.Services;
 
 namespace Physics.Helpers
 {
-    public abstract class ViewModelBase : INotifyPropertyChanged
+    public abstract class ViewModelBase : BindableBase
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-        public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        protected static ServiceProvider serviceProvider = App.serviceProvider;
+        protected static NavigationService navigationService = serviceProvider.GetService<NavigationService>();
+
+        public string ViewTitle { get; protected set; }
+
+        public ViewModelBase()
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
         }
     }
 }

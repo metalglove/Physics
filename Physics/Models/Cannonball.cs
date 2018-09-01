@@ -1,8 +1,11 @@
-﻿namespace Physics.Models
+﻿using System;
+
+namespace Physics.Models
 {
     public struct Cannonball : IProjectile
     {
         public double Mass => 3; // kg
-        public double Diameter => 0.3; // meters
+        public double Diameter => 0.3; // meters3
+        public double Area => (Math.PI * (Diameter * Diameter)) * 0.25; // meters squared
     }
 }

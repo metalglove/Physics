@@ -13,30 +13,32 @@ namespace Physics
         public MainWindow()
         {
             InitializeComponent();
-            NameScope.SetNameScope(this, new NameScope());
+            //NameScope.SetNameScope(this, new NameScope());
 
-            Trajectory trajectoryEven = Services.ProjectileMotionService.CalculateTrajectory(new Cannonball(), 10, 45, 0, 50);
-            Trajectory trajectoryUnEven = Services.ProjectileMotionService.CalculateTrajectory(new Cannonball(), 10, 45, 10, 50);
+            //Trajectory trajectoryEven = Services.ProjectileMotionService.CalculateTrajectory(10, 45, 0, 50);
+            //Trajectory trajectoryUnEven = Services.ProjectileMotionService.CalculateTrajectory(10, 45, 10, 50);
+            //Trajectory trajectory = Services.ProjectileMotionService.CalculateTrajectoryWithDrag(new Cannonball(), 10, 45, 0, 50);
+            //DisplayTrajectory(trajectoryEven, 10, 45, 0, 50);
+            //DisplayTrajectory(trajectoryUnEven, 10, 45, 10, 50);
 
-            DisplayTrajectory(trajectoryEven, 10, 45, 0, 50);
-            DisplayTrajectory(trajectoryUnEven, 10, 45, 10, 50);
+            //AnimateTrajectory(trajectoryEven, "Even", Brushes.Black);
+            //AnimateTrajectory(trajectoryUnEven, "Uneven", Brushes.Green);
 
-            AnimateTrajectory(trajectoryEven, "Even", Brushes.Black);
-            AnimateTrajectory(trajectoryUnEven, "Uneven", Brushes.Green);
+            //CreateAPath();
+            //DrawLine();
         }
 
         private void AnimateTrajectory(Trajectory trajectory, string identifier, Brush brush)
         {
-            EllipseGeometry animatedObjectGeometry = new EllipseGeometry(new Point(0, trajectory.Vectors[0].Y * 10), 10, 10);
+            EllipseGeometry animatedObjectGeometry = new EllipseGeometry(new Point(0, trajectory.Vectors[0].Y * 10), 5, 5);
             RegisterName("AnimatedObjectGeometry"+ identifier, animatedObjectGeometry);
 
             Path objectPath = new Path
             {
                 Data = animatedObjectGeometry,
-                Fill = brush,
-                Margin = new Thickness(10)
+                Fill = brush
             };
-            cvField.Children.Add(objectPath);
+            //cvField.Children.Add(objectPath);
 
             PathGeometry animationPath = new PathGeometry();
             PathFigure pFigure = new PathFigure
@@ -51,6 +53,7 @@ namespace Physics
             pFigure.Segments.Add(pBezierSegment);
             animationPath.Figures.Add(pFigure);
 
+            DrawLine(animationPath, brush);
             animationPath.Freeze();
 
             PointAnimationUsingPath centerPointAnimation = new PointAnimationUsingPath
@@ -83,6 +86,14 @@ namespace Physics
             {
                 Debug.WriteLine($"{x}: X: {item.X}, Y: {item.Y}, Current time in air: {x++ * (trajectory.AirTime / trajectorySteps)}s");
             }
+        }
+        private void DrawLine(PathGeometry pathGeometry, Brush brush)
+        {
+            Path arcPath = new Path();
+            arcPath.Stroke = brush;
+            arcPath.StrokeThickness = 1;
+            arcPath.Data = pathGeometry;
+            //cvField.Children.Add(arcPath);
         }
     }
 }

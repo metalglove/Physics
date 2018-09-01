@@ -54,11 +54,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Helpers\BindableBase.cs" />
     <Compile Include="Helpers\DelegateCommand.cs" />
+    <Compile Include="Helpers\IService.cs" />
+    <Compile Include="Helpers\ServiceProvider.cs" />
     <Compile Include="Helpers\ViewModelBase.cs" />
     <Compile Include="Models\Cannonball.cs" />
     <Compile Include="Models\IProjectile.cs" />
     <Compile Include="Models\Trajectory.cs" />
+    <Compile Include="Services\NavigationService.cs" />
     <Compile Include="Services\ProjectileMotionService.cs" />
     <Compile Include="ViewModels\ProjectileLauncherViewModel.cs" />
     <Compile Include="Views\ProjectileLauncherView.xaml.cs">

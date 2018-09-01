@@ -4,5 +4,6 @@
     {
         double Mass { get; }
         double Diameter { get; }
+        double Area { get; }
     }
 }
