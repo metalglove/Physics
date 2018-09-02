@@ -5,13 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Physics"
         mc:Ignorable="d"
-        Title="MainWindow" Width="800" Height="800">
+        Title="MainWindow">
     <Grid>
         <ContentControl Content="{Binding CurrentViewModel}"/>
-        <!--<Canvas Name="cvField" Width="300" Height="300" RenderTransformOrigin="0.5,0.5" Background="Wheat">
-            <Canvas.RenderTransform>
-                <ScaleTransform ScaleY="-1" />
-            </Canvas.RenderTransform>
-        </Canvas>-->
     </Grid>
 </Window>

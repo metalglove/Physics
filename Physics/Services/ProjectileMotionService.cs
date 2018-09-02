@@ -1,6 +1,7 @@
 ﻿using Physics.Helpers;
 using Physics.Models;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
@@ -11,16 +12,15 @@ namespace Physics.Services
     {
         private const double gravity = 9.81; // 9.81 meters per second squared.
         private const double dragCoefficient = 0.47; // for a smooth sphere the drag coefficient is 0.47 (Re = 1e5)
-        private const double airDensity = 1.2051; // rho (kg/m3) for an environment where temperature is 20C, Air pressure is 1018 (hPa) and Dew point is 7.5C. 
 
         /// <summary>
-        /// Calculates a trajectory for a projectile with the given parameters: velocity, angle & initial height.
+        /// Calculates a trajectory with the given parameters: velocity, angle & initial height.
         /// </summary>
         /// <param name="velocity">measured in meters per second.</param>
         /// <param name="angle">measured in degrees.</param>
         /// <param name="initialHeight">the height of the projectile being launched from.</param>
         /// <param name="trajectorySteps">the amount of steps a trajectory needs to be calculated for.</param>
-        public Trajectory CalculateTrajectory(double velocity, double angle, double initialHeight = 0, double trajectorySteps = 50)
+        public Trajectory CalculateTrajectory(double velocity, double angle, double initialHeight = 0, double trajectorySteps = 1000)
         {
             VectorCollection vectors = new VectorCollection(); // vectors of trajectory
             double totalTime = 0; // total time in air in seconds
@@ -42,64 +42,99 @@ namespace Physics.Services
             double stepper = totalTime / trajectorySteps;
             for (double currentTime = 0; Math.Round(currentTime, 10) <= Math.Round(totalTime, 10); currentTime += stepper)
             {
-                vectors.Add(CalculateVectorFor(velocity, angle, initialHeight, vectors, currentTime));
+                vectors.Add(CalculateVector(velocity, angle, initialHeight, vectors, currentTime));
             }
             double impactAngle = (180 * Math.Atan(temp / (velocity * Math.Cos(angle)))) / Math.PI;
             return new Trajectory(vectors, Math.Round(totalTime, 4), Math.Round(impactAngle, 4), Math.Round(distance, 4));
         }
-        public Trajectory CalculateTrajectoryWithDrag(IProjectile projectile, double velocity, double angle, double initialHeight = 0, double trajectorySteps = 50)
+        /// <summary>
+        /// Calculates a trajectory for a projectile with the given parameters: velocity, angle & initial height.
+        /// </summary>
+        /// <param name="projectile">the projectile a trajectory needs to be calculated for.</param>
+        /// <param name="velocity">measured in meters per second.</param>
+        /// <param name="angle">measured in degrees.</param>
+        /// <param name="initialHeight">the height of the projectile being launched from.</param>
+        /// <param name="trajectorySteps">the amount of steps a trajectory needs to be calculated for.</param>
+        public Trajectory CalculateTrajectoryWithDrag(IProjectile projectile, double velocity, double angle, double initialHeight = 0, double trajectorySteps = 1000)
         {
-            double angleRadians = DegreesToRadians(angle);
-            double maxVelocity = Math.Sqrt((2 * projectile.Mass * gravity) / (dragCoefficient * projectile.Area * airDensity));
-            double maxVelocity2 = (maxVelocity * maxVelocity);
-            double timeAtMaxHeight = (maxVelocity / gravity) * Math.Atan(velocity / maxVelocity);
-            double actualYVector = velocity * Math.Sin(angleRadians);
+            VectorCollection vectors = new VectorCollection();
+            vectors.Add(new Vector(0, initialHeight));
+            double k = dragCoefficient * Math.PI * projectile.Area * AirDensityCalculator(initialHeight != 0 ? initialHeight : 0.00000001) / projectile.Mass / 16; // different equations for drag exist
+            double height = initialHeight != 0 ? initialHeight : 0.00000001;
+            angle = DegreesToRadians(angle);
+            double vx = velocity * Math.Cos(angle);
+            double vy = velocity * Math.Sin(angle);
+            double dt = CalculateTotalTimeWithDrag(projectile, velocity, vy, height, 0.01) / trajectorySteps;
+            double totalTime = 0;
+            List<double> vxnew = new List<double> { vx };
+            List<double> vynew = new List<double> { vy };
+            List<double> xnew = new List<double> { 0 };
+            List<double> ynew = new List<double> { height };
 
-            for (double currentTime = 0; actualYVector > 0; currentTime += 0.1)
+            for (int i = 0; i < trajectorySteps; i++)
             {
-                // Y component of velocity
-                double vy = velocity * Math.Sin(angleRadians) - 0.5 * gravity * currentTime;
-                double vy2 = vy * vy;
-
-
-                double preActualVelocity = Math.Tan(currentTime * gravity / maxVelocity);
-                double actualVelocity = currentTime >= timeAtMaxHeight ? maxVelocity : maxVelocity * (vy - maxVelocity * preActualVelocity) / (maxVelocity + vy * preActualVelocity);
-                actualYVector = (0.5 * maxVelocity2 / gravity) * Math.Log((vy2 + maxVelocity2 / (actualVelocity * actualVelocity) + maxVelocity2));
-
-                // X component of velocity
-                double vx = velocity * Math.Cos(angleRadians);
-                double actualXVector = (maxVelocity2 / gravity) * Math.Log((maxVelocity2 + gravity * vx * currentTime / maxVelocity2));
-
-                Debug.WriteLine($"Current time: {currentTime}, ActualYVector: {actualYVector}, ActualXVector: {actualXVector}, ActualVelocity: {actualVelocity}");
-            }       
-
-
-            return new Trajectory(new VectorCollection(), new double(), new double(), new double());
+                double ax = -k * velocity * vxnew[i];
+                double ay = -k * velocity * vynew[i] - gravity;
+                CalculateNewVelocity(ref vxnew, ref vynew, dt, i, ax, ay);
+                vectors.Add(CalculateVectorWithDrag(vxnew, vynew, ref xnew, ref ynew, dt, i, ax, ay));
+                totalTime += dt;
+            }
+            double distance = xnew[xnew.Count - 1];
+            double impactAngle = CalculateImpactAngle(initialHeight, angle, vxnew, vynew);
+            return new Trajectory(vectors, Math.Round(totalTime, 4), Math.Round(impactAngle, 4), Math.Round(distance, 4));
         }
-        public Trajectory CalculateTrajectoryWithDragV2(IProjectile projectile, double velocity, double angle, double initialHeight = 0, double trajectorySteps = 50)
+        private static double CalculateTotalTimeWithDrag(IProjectile projectile, double velocity, double vy, double height, double dt)
         {
-            double dragX = 0;
-            double dragY = 0;
-            double velocityX = 0; 
-            double velocityY = 0;
-
-            double G = -projectile.Mass * gravity;
-            double D = 0.5 * airDensity * (velocity * velocity) * dragCoefficient * projectile.Area;
-            velocity = Math.Sqrt((velocityX * velocityX) + (velocityY * velocityY));
-            dragX = -D * velocityX / velocity;
-            dragY = -D * velocityY / velocity;
-
-            return new Trajectory(new VectorCollection(), new double(), new double(), new double());
+            List<double> vynew = new List<double> { vy };
+            List<double> ynew = new List<double> { height };
+            int n = 0;
+            double totalTime = 0;
+            while (ynew[n] >= 0)
+            {
+                double k = dragCoefficient * Math.PI * projectile.Area * AirDensityCalculator(ynew[n]) / projectile.Mass / 16;
+                double ay = -k * velocity * vynew[n] - gravity;
+                vynew.Add(vynew[n] + ay * dt);
+                ynew.Add(ynew[n] + vynew[n] * dt + ay * dt * dt);
+                totalTime += dt;
+                n++;
+            }
+            return totalTime;
         }
-        private static Vector CalculateVectorFor(double velocity, double angle, double initialHeight, VectorCollection vectors, double currentTime)
+        private static double CalculateImpactAngle(double initialHeight, double angle, List<double> vxnew, List<double> vynew)
+        {
+            double newVelocity = Math.Sqrt(Math.Pow(vxnew[vxnew.Count - 1], 2) + Math.Pow(vynew[vynew.Count - 1], 2));
+            double temp = Math.Sqrt((newVelocity * newVelocity) * (Math.Sin(angle) * Math.Sin(angle)) + 2 * gravity * initialHeight);
+            double impactAngle = (180 * Math.Atan(temp / (newVelocity * Math.Cos(angle)))) / Math.PI;
+            return impactAngle;
+        }
+        private static void CalculateNewVelocity(ref List<double> vxnew, ref List<double> vynew, double dt, int i, double ax, double ay)
+        {
+            vxnew.Add(vxnew[i] + ax * dt);
+            vynew.Add(vynew[i] + ay * dt);
+        }
+        private static Vector CalculateVector(double velocity, double angle, double initialHeight, VectorCollection vectors, double currentTime)
         {
             double xVector = Math.Round(velocity * currentTime * Math.Cos(angle), 4);
             double yVector = Math.Round(initialHeight + (velocity * currentTime * Math.Sin(angle)) - 0.5 * gravity * (currentTime * currentTime), 4);
             return new Vector(xVector, yVector);
         }
+        private static Vector CalculateVectorWithDrag(List<double> vxnew, List<double> vynew, ref List<double> xnew, ref List<double> ynew, double dt, int i, double ax, double ay)
+        {
+            xnew.Add(xnew[i] + vxnew[i] * dt + ax * dt * dt);
+            ynew.Add(ynew[i] + vynew[i] * dt + ay * dt * dt);
+            return new Vector(xnew[i + 1], ynew[i + 1]);
+        }
         private static double DegreesToRadians(double angle)
         {
             return (Math.PI * angle) / 180;
+        }
+        private static double AirDensityCalculator(double currentHeight)
+        {
+            // Max is 11000 meters on Earth
+            double temperature = 15.04 - 0.00649 * currentHeight;
+            double pressure = 101.29 * Math.Pow((temperature + 273.1) / 288.08, 5.256);
+            double rho = pressure / (0.2869 * (temperature = 273.1));
+            return rho;
         }
     }
 }
