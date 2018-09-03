@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Physics"
         mc:Ignorable="d"
         Title="MainWindow">
-    <Grid>
-        <ContentControl Content="{Binding CurrentViewModel}"/>
-    </Grid>
+    <Viewbox Margin="10">
+        <ContentControl Content="{Binding CurrentViewModel}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+    </Viewbox>
 </Window>
