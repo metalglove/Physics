@@ -2,7 +2,6 @@
 using Physics.Models;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 
