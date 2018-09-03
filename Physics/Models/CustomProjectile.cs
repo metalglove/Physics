@@ -6,16 +6,18 @@ namespace Physics.Models
     {
         public double Mass { get; private set; }
         public double Diameter { get; private set; }
-        public double Area => (Math.PI * (Diameter * Diameter)) * 0.25;
+        public double DragCoefficient { get; private set; }
+        public double Area => Math.PI * (Diameter * Diameter);
         public double X { get; private set; }
         public double Y { get; private set; }
 
-        public CustomProjectile(double mass, double diameter, double y)
+        public CustomProjectile(double mass, double diameter, double y, double dragCoefficient)
         {
             Mass = mass;
             Diameter = diameter;
             Y = y;
             X = 0;
+            DragCoefficient = dragCoefficient;
         }
     }
 }

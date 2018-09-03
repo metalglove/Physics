@@ -17,7 +17,7 @@ namespace Physics.ViewModels
     {
         #region Fields
         private string _name, _xTitle, _yTitle;
-        private double _mass, _diameter, _velocity, _angle, _initialHeight, _trajectorySteps;
+        private double _mass, _diameter, _dragCoefficient, _velocity, _angle, _initialHeight, _trajectorySteps;
         private Canvas _canvas;
         private ObservableCollection<string> _calculations;
         #endregion Fields
@@ -65,6 +65,15 @@ namespace Physics.ViewModels
             set
             {
                 _diameter = value;
+                RaisePropertyChanged();
+            }
+        }
+        public double DragCoefficient
+        {
+            get => _dragCoefficient;
+            set
+            {
+                _dragCoefficient = value;
                 RaisePropertyChanged();
             }
         }
@@ -144,10 +153,11 @@ namespace Physics.ViewModels
         #region Methods
         private void SetDefaults()
         {
-            Mass = 0.3;
-            Diameter = 0.2;
-            Velocity = 18;
-            Angle = 45;
+            Mass = 0.8;
+            Diameter = 0.3;
+            DragCoefficient = 0.47;
+            Velocity = 30;
+            Angle = 42;
             InitialHeight = 0;
             TrajectorySteps = 1000;
             XTitle = "X - Range in meters";
@@ -276,12 +286,12 @@ namespace Physics.ViewModels
         private void DoCalculateTrajectoryCommand()
         {
             Trajectory trajectoryNoDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectory(Velocity, Angle, InitialHeight, TrajectorySteps);
-            Trajectory trajectoryDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectoryWithDrag(new CustomProjectile(Mass, Diameter, InitialHeight), Velocity, Angle, InitialHeight, TrajectorySteps);
+            Trajectory trajectoryDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectoryWithDrag(new CustomProjectile(Mass, Diameter, InitialHeight, DragCoefficient), Velocity, Angle, InitialHeight, TrajectorySteps);
             
-            DisplayTrajectory(trajectoryNoDrag, Velocity, Angle, InitialHeight, TrajectorySteps);
+            //DisplayTrajectory(trajectoryNoDrag, Velocity, Angle, InitialHeight, TrajectorySteps);
             AnimateTrajectory(trajectoryNoDrag, Name + "nodrag", PickBrush());
 
-            DisplayTrajectory(trajectoryDrag, Velocity, Angle, InitialHeight, TrajectorySteps);
+            //DisplayTrajectory(trajectoryDrag, Velocity, Angle, InitialHeight, TrajectorySteps);
             AnimateTrajectory(trajectoryDrag, Name + "drag", PickBrush());
         }
         private bool CanDoCalculateTrajectoryCommand()

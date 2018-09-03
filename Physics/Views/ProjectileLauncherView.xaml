@@ -191,6 +191,14 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Drag coefficient:" FontWeight="Bold"/>
+                <TextBox Grid.Column="1" Text="{Binding DragCoefficient, UpdateSourceTrigger=PropertyChanged}"/>
+            </Grid>
+            <Grid HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Name:" FontWeight="Bold"/>
                 <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
             </Grid>
