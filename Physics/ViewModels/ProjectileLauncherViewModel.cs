@@ -285,14 +285,14 @@ namespace Physics.ViewModels
         #region Command Methods
         private void DoCalculateTrajectoryCommand()
         {
-            Trajectory trajectoryNoDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectory(Velocity, Angle, InitialHeight, TrajectorySteps);
-            Trajectory trajectoryDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectoryWithDrag(new CustomProjectile(Mass, Diameter, InitialHeight, DragCoefficient), Velocity, Angle, InitialHeight, TrajectorySteps);
+            Trajectory trajectoryNoDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectoryV2(Velocity, Angle, InitialHeight);
+            Trajectory trajectoryDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectoryWithDrag(new CustomProjectile(Mass, Diameter, InitialHeight, DragCoefficient), Velocity, Angle, InitialHeight);
             
             //DisplayTrajectory(trajectoryNoDrag, Velocity, Angle, InitialHeight, TrajectorySteps);
-            AnimateTrajectory(trajectoryNoDrag, Name + "nodrag", PickBrush());
+            AnimateTrajectory(trajectoryNoDrag, Name + "nodrag", Brushes.Black);
 
             //DisplayTrajectory(trajectoryDrag, Velocity, Angle, InitialHeight, TrajectorySteps);
-            AnimateTrajectory(trajectoryDrag, Name + "drag", PickBrush());
+            AnimateTrajectory(trajectoryDrag, Name + "drag", Brushes.Red);
         }
         private bool CanDoCalculateTrajectoryCommand()
         {

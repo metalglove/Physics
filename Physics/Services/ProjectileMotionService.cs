@@ -1,9 +1,6 @@
 ﻿using Physics.Helpers;
 using Physics.Models;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 
@@ -42,11 +39,39 @@ namespace Physics.Services
             double stepper = totalTime / trajectorySteps;
             for (double currentTime = 0; Math.Round(currentTime, 10) <= Math.Round(totalTime, 10); currentTime += stepper)
             {
-                vectors.Add(CalculateVector(velocity, angle, initialHeight, vectors, currentTime));
+                vectors.Add(CalculateVector(velocity, angle, initialHeight, currentTime));
             }
-            double impactAngle = (180 * Math.Atan(temp / (velocity * Math.Cos(angle)))) / Math.PI;
+            double impactAngle = CalculateImpactAngle(velocity, angle, temp);
             return new Trajectory(vectors, Math.Round(totalTime, 4), Math.Round(impactAngle, 4), Math.Round(distance, 4));
         }
+        public Trajectory CalculateTrajectoryV2(double velocity, double angle, double initialHeight = 0)
+        {
+            VectorCollection vectors = new VectorCollection(); // vectors of trajectory
+            double totalTime = 0; // total time in air in seconds
+            double distance = 0; // total distance travelled in meters on X-axis
+            angle = DegreesToRadians(angle); // degrees to radians
+            double xVelocity, yVelocity, ax, ay, x = 0, y = 0;
+            xVelocity = velocity * Math.Cos(angle);
+            yVelocity = velocity * Math.Sin(angle);
+            double dt = 0.001;
+
+            for (int i = 0; y > -0.0000000000001; i++)
+            {
+                ax = 0;
+                ay = -gravity;
+                xVelocity = xVelocity + ax * dt;
+                yVelocity = yVelocity + ay * dt;
+                x = x + xVelocity * dt + ax * dt * dt;
+                y = y + yVelocity * dt + ay * dt * dt;
+                vectors.Add(CalculateVector(velocity, angle, y, totalTime));
+                totalTime += dt;
+            }
+            double temp = Math.Sqrt((velocity * velocity) * (Math.Sin(angle) * Math.Sin(angle)) + 2 * gravity * initialHeight);
+
+            double impactAngle = CalculateImpactAngle(velocity, angle, temp);
+            return new Trajectory(vectors, Math.Round(totalTime, 4), Math.Round(impactAngle, 4), Math.Round(distance, 4));
+        }
+
         /// <summary>
         /// Calculates a trajectory for a projectile with the given parameters: velocity, angle & initial height.
         /// </summary>
@@ -55,53 +80,61 @@ namespace Physics.Services
         /// <param name="angle">measured in degrees.</param>
         /// <param name="initialHeight">the height of the projectile being launched from.</param>
         /// <param name="trajectorySteps">the amount of steps a trajectory needs to be calculated for.</param>
-        public Trajectory CalculateTrajectoryWithDrag(IProjectile projectile, double velocity, double angle, double initialHeight = 0, double trajectorySteps = 1000)
+        public Trajectory CalculateTrajectoryWithDrag(IProjectile projectile, double velocity, double angle, double initialHeight = 0)
         {
             VectorCollection vectors = new VectorCollection();
-            vectors.Add(new Vector(0, initialHeight));
+            vectors.Add(new Vector(0, initialHeight)); // adds the first position
             angle = DegreesToRadians(angle);
             double totalTime = 0;
-            double vxnew = velocity * Math.Cos(angle);
-            double vynew = velocity * Math.Sin(angle);
-            double xnew = 0;
-            double ynew = initialHeight;
-            double dt = 0.001;
+            double xVelocity = velocity * Math.Cos(angle);
+            double yVelocity = velocity * Math.Sin(angle);
+            double x = 0;
+            double y = initialHeight;
+            double timeStep = 0.001;
 
-            for (int i = 0; ynew > -0.0000000000001; i++)
+            for (int i = 0; y > -0.0000000000001; i++)
             {
-                double k = projectile.DragCoefficient * projectile.Area * AirDensityCalculator(ynew) / projectile.Mass / 8;
+                double k = projectile.DragCoefficient * projectile.Area * AirDensityCalculator(y) / projectile.Mass / 8;
                 // update current velocity to the previously calculated velocity
-                velocity = Math.Sqrt(vxnew * vxnew + vynew * vynew);
-                double ax = -k * velocity * vxnew;
-                double ay = -k * velocity * vynew - gravity;
+                velocity = CalculateNewVelocity(xVelocity, yVelocity);
+                double ax = -k * velocity * xVelocity;
+                double ay = -k * velocity * yVelocity - gravity;
                 // calculate new velocity
-                vxnew = vxnew + ax * dt;
-                vynew = vynew + ay * dt;
-                vectors.Add(CalculateVectorWithDrag(vxnew, vynew, ref xnew, ref ynew, dt, i, ax, ay));
-                totalTime += dt;
+                xVelocity = xVelocity + ax * timeStep;
+                yVelocity = yVelocity + ay * timeStep;
+                vectors.Add(CalculateVectorWithDrag(xVelocity, yVelocity, ref x, ref y, timeStep, i, ax, ay));
+                totalTime += timeStep;
             }
-            double distance = xnew;
-            double impactAngle = CalculateImpactAngle(initialHeight, angle, vxnew, vynew);
-            return new Trajectory(vectors, Math.Round(totalTime, 4), Math.Round(impactAngle, 4), Math.Round(distance, 4));
+            double impactAngle = CalculateImpactAngleWithDrag(initialHeight, angle, xVelocity, yVelocity);
+            return new Trajectory(vectors, Math.Round(totalTime, 4), Math.Round(impactAngle, 4), Math.Round(x, 4));
         }
-        private static double CalculateImpactAngle(double initialHeight, double angle, double vxnew, double vynew)
+        
+        private static Vector CalculateVector(double velocity, double angle, double initialHeight, double currentTime)
         {
-            double newVelocity = Math.Sqrt(Math.Pow(vxnew, 2) + Math.Pow(vynew, 2));
-            double temp = Math.Sqrt((newVelocity * newVelocity) * (Math.Sin(angle) * Math.Sin(angle)) + 2 * gravity * initialHeight);
-            double impactAngle = (180 * Math.Atan(temp / (newVelocity * Math.Cos(angle)))) / Math.PI;
-            return impactAngle;
-        }
-        private static Vector CalculateVector(double velocity, double angle, double initialHeight, VectorCollection vectors, double currentTime)
-        {
-            double xVector = Math.Round(velocity * currentTime * Math.Cos(angle), 4);
-            double yVector = Math.Round(initialHeight + (velocity * currentTime * Math.Sin(angle)) - 0.5 * gravity * (currentTime * currentTime), 4);
+            double xVector = velocity * currentTime * Math.Cos(angle);
+            double yVector = initialHeight + (velocity * currentTime * Math.Sin(angle)) - 0.5 * gravity * (currentTime * currentTime);
             return new Vector(xVector, yVector);
         }
-        private static Vector CalculateVectorWithDrag(double vxnew, double vynew, ref double xnew, ref double ynew, double dt, int i, double ax, double ay)
+        private static Vector CalculateVectorWithDrag(double xVelocity, double yVelocity, ref double x, ref double y, double dt, int i, double ax, double ay)
         {
-            xnew = xnew + vxnew * dt + ax * dt * dt;
-            ynew = ynew + vynew * dt + ay * dt * dt;
-            return new Vector(xnew, ynew);
+            x = x + xVelocity * dt + ax * dt * dt;
+            y = y + yVelocity * dt + ay * dt * dt;
+            return new Vector(x, y);
+        }
+        private static double CalculateImpactAngle(double velocity, double angle, double temp)
+        {
+            return (180 * Math.Atan(temp / (velocity * Math.Cos(angle)))) / Math.PI;
+        }
+        private static double CalculateImpactAngleWithDrag(double initialHeight, double angle, double xVelocity, double yVelocity)
+        {
+            double velocity = CalculateNewVelocity(xVelocity, yVelocity);
+            double temp = Math.Sqrt((velocity * velocity) * (Math.Sin(angle) * Math.Sin(angle)) + 2 * gravity * initialHeight);
+            double impactAngle = CalculateImpactAngle(velocity, angle, temp);
+            return impactAngle;
+        }
+        private static double CalculateNewVelocity(double xVelocity, double yVelocity)
+        {
+            return Math.Sqrt(xVelocity * xVelocity + yVelocity * yVelocity);
         }
         private static double DegreesToRadians(double angle)
         {

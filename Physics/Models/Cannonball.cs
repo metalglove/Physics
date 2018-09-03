@@ -10,6 +10,5 @@ namespace Physics.Models
         public double Area => Math.PI * (Diameter * Diameter); // meters squared
         public double X => 0;
         public double Y => 0;
-
     }
 }
