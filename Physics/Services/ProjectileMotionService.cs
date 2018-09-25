@@ -92,7 +92,7 @@ namespace Physics.Services
             double y = initialHeight;
             double timeStep = 0.001;
 
-            for (int i = 0; y > -0.0000000000001; i++)
+            for (int i = 0; y > -0.000_000_000_0001; i++)
             {
                 double k = projectile.DragCoefficient * projectile.Area * AirDensityCalculator(y) / projectile.Mass / 8;
                 // update current velocity to the previously calculated velocity

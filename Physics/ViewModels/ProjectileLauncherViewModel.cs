@@ -16,19 +16,20 @@ namespace Physics.ViewModels
     public class ProjectileLauncherViewModel : ViewModelBase
     {
         #region Fields
-        private string _name, _xTitle, _yTitle;
+        private int _counter;
+        private string _xTitle, _yTitle;
         private double _mass, _diameter, _dragCoefficient, _velocity, _angle, _initialHeight, _trajectorySteps;
         private Canvas _canvas;
         private ObservableCollection<string> _calculations;
         #endregion Fields
 
         #region Properties
-        public string Name
+        public int Counter
         {
-            get => _name;
+            get => _counter;
             set
             {
-                _name = value;
+                _counter = value;
                 RaisePropertyChanged();
             }
         }
@@ -153,6 +154,7 @@ namespace Physics.ViewModels
         #region Methods
         private void SetDefaults()
         {
+            Counter = 0;
             Mass = 0.8;
             Diameter = 0.3;
             DragCoefficient = 0.47;
@@ -226,7 +228,6 @@ namespace Physics.ViewModels
             };
             Canvas.SetLeft(textBlock, endX.X / 2);
             Canvas.SetTop(textBlock, -30);
-            //Canvas.Children.Add(textBlock);
             Calculations.Add($"X: {Math.Round(endX.X / multiplier, 4)}m, Airtime: {trajectory.AirTime}s");
         }
         private static void DisplayTrajectory(Trajectory trajectory, double velocity, double angle, double initialHeight = 0, double trajectorySteps = 50)
@@ -270,29 +271,17 @@ namespace Physics.ViewModels
                 Canvas.Children.Add(label2);
             }
         }
-        private static Brush PickBrush()
-        {
-            Brush result = Brushes.Transparent;
-            Random rnd = new Random();
-            Type brushesType = typeof(Brushes);
-            PropertyInfo[] properties = brushesType.GetProperties();
-            int random = rnd.Next(properties.Length);
-            result = (Brush)properties[random].GetValue(null, null);
-            return result;
-        }
         #endregion Methods
 
         #region Command Methods
         private void DoCalculateTrajectoryCommand()
         {
-            Trajectory trajectoryNoDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectoryV2(Velocity, Angle, InitialHeight);
+            Trajectory trajectoryNoDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectory(Velocity, Angle, InitialHeight);
             Trajectory trajectoryDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectoryWithDrag(new CustomProjectile(Mass, Diameter, InitialHeight, DragCoefficient), Velocity, Angle, InitialHeight);
             
-            //DisplayTrajectory(trajectoryNoDrag, Velocity, Angle, InitialHeight, TrajectorySteps);
-            AnimateTrajectory(trajectoryNoDrag, Name + "nodrag", Brushes.Black);
-
-            //DisplayTrajectory(trajectoryDrag, Velocity, Angle, InitialHeight, TrajectorySteps);
-            AnimateTrajectory(trajectoryDrag, Name + "drag", Brushes.Red);
+            AnimateTrajectory(trajectoryNoDrag, Counter + "nodrag", Brushes.Black);
+            AnimateTrajectory(trajectoryDrag, Counter + "drag", Brushes.Red);
+            Counter++;
         }
         private bool CanDoCalculateTrajectoryCommand()
         {
