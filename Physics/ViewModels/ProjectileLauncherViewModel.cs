@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Physics.Helpers;
 using Physics.Models;
@@ -168,15 +169,17 @@ namespace Physics.ViewModels
         private void AnimateTrajectory(Trajectory trajectory, string identifier, Brush brush)
         {
             double multiplier = 8; // based on grid columns & rows. 40 each
-            EllipseGeometry animatedObjectGeometry = new EllipseGeometry(new Point(0, trajectory.Vectors[0].Y * multiplier), 5, 5);
+            EllipseGeometry animatedObjectGeometry = new EllipseGeometry(new Point(0, trajectory.Vectors[0].Y * multiplier), 15, 15);
+            
             string name = "AnimatedObjectGeometryBall" + identifier;
             Canvas.RegisterName(name, animatedObjectGeometry);
 
             Path objectPath = new Path
             {
                 Data = animatedObjectGeometry,
-                Fill = brush
+                Fill = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/Physics;component/Images/cannonball.png", UriKind.Absolute)))
             };
+            
             Canvas.Children.Add(objectPath);
 
             PathGeometry animationPath = new PathGeometry();
