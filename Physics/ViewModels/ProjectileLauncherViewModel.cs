@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,11 +18,15 @@ namespace Physics.ViewModels
     public class ProjectileLauncherViewModel : ViewModelBase
     {
         #region Fields
-        private int _counter;
+        private const string PROJECT_DIRECTORY_PATH = "pack://application:,,,/Physics;component";
+        private const int CANVAS_SIZE = 800;
+        private const int PROJECTILE_SIZE = 10;
         private string _xTitle, _yTitle;
+        private int _counter;
         private double _mass, _diameter, _dragCoefficient, _velocity, _angle, _initialHeight, _trajectorySteps;
         private Canvas _canvas;
         private ObservableCollection<string> _calculations;
+        private Rectangle _castle;
         #endregion Fields
 
         #region Properties
@@ -121,7 +126,7 @@ namespace Physics.ViewModels
             {
                 Background = Brushes.Wheat,
                 RenderTransformOrigin = new Point(0.5, 0.5),
-                RenderTransform = new ScaleTransform() { ScaleY = -1 }
+                RenderTransform = FlippedTransform
             });
             set
             {
@@ -138,6 +143,31 @@ namespace Physics.ViewModels
                 RaisePropertyChanged();
             }
         }
+        public Rect CastleRect
+        {
+            get
+            {
+                if (_castle.Equals(null))
+                {
+                    throw new ArgumentException("Castle not set");
+                }
+                return new Rect()
+                {
+                    Location = new Point(Canvas.GetLeft(Castle), Canvas.GetTop(Castle)),
+                    Size = new Size(Castle.Width, Castle.Height)
+                };
+            }
+        }
+        public Rectangle Castle
+        {
+            get => _castle;
+            set
+            {
+                _castle = value;
+                RaisePropertyChanged();
+            }
+        }
+        private static ScaleTransform FlippedTransform => new ScaleTransform() { ScaleY = -1 };
         #endregion Properties
 
         #region Commands
@@ -165,11 +195,26 @@ namespace Physics.ViewModels
             TrajectorySteps = 1000;
             XTitle = "X - Range in meters";
             YTitle = "Y - Height in meters";
+            BuildCastle();
+        }
+        private void BuildCastle()
+        {
+            Castle = new Rectangle
+            {
+                RenderTransform = FlippedTransform,
+                Width = 100,
+                Height = 100,
+                Fill = new ImageBrush(new BitmapImage(new Uri(PROJECT_DIRECTORY_PATH + "/Images/castle.png", UriKind.Absolute)))
+            };
+            Canvas.SetLeft(Castle, CANVAS_SIZE - 200);
+            Canvas.SetTop(Castle, Castle.Height);
+            Canvas.Children.Add(Castle);
         }
         private void AnimateTrajectory(Trajectory trajectory, string identifier, Brush brush)
         {
+            Point pointOfImpact = trajectory.Points.FirstOrDefault(ContainedPoint);
             double multiplier = 8; // based on grid columns & rows. 40 each
-            EllipseGeometry animatedObjectGeometry = new EllipseGeometry(new Point(0, trajectory.Vectors[0].Y * multiplier), 15, 15);
+            EllipseGeometry animatedObjectGeometry = new EllipseGeometry(new Point(0, trajectory.Points[0].Y * multiplier), PROJECTILE_SIZE, PROJECTILE_SIZE);
             
             string name = "AnimatedObjectGeometryBall" + identifier;
             Canvas.RegisterName(name, animatedObjectGeometry);
@@ -177,7 +222,7 @@ namespace Physics.ViewModels
             Path objectPath = new Path
             {
                 Data = animatedObjectGeometry,
-                Fill = new ImageBrush(new BitmapImage(new Uri("pack://application:,,,/Physics;component/Images/cannonball.png", UriKind.Absolute)))
+                Fill = new ImageBrush(new BitmapImage(new Uri(PROJECT_DIRECTORY_PATH + "/Images/cannonball.png", UriKind.Absolute)))
             };
             
             Canvas.Children.Add(objectPath);
@@ -185,22 +230,27 @@ namespace Physics.ViewModels
             PathGeometry animationPath = new PathGeometry();
             PathFigure pFigure = new PathFigure
             {
-                StartPoint = new Point(0, trajectory.Vectors[0].Y * multiplier)
+                StartPoint = new Point(0, trajectory.Points[0].Y * multiplier)
             };
             PolyBezierSegment pBezierSegment = new PolyBezierSegment();
-            foreach (Vector item in trajectory.Vectors)
+            foreach (Point item in trajectory.Points)
             {
-                pBezierSegment.Points.Add(new Point(item.X * multiplier, item.Y * multiplier));
+                Point x = new Point(item.X * multiplier, item.Y * multiplier);
+                if(x.X > pointOfImpact.X * 10 && !pointOfImpact.Equals(default(Point)))
+                {
+                    break;
+                }
+                pBezierSegment.Points.Add(x);
             }
 
-            DrawResultLabel(trajectory, multiplier, pBezierSegment);
+            DrawResultLabel(trajectory.AirTime, multiplier, pBezierSegment);
 
             pFigure.Segments.Add(pBezierSegment);
             animationPath.Figures.Add(pFigure);
-
-            DrawLine(animationPath, brush);
+            
+            Path arcPath = DrawLine(animationPath, brush);
             animationPath.Freeze();
-
+            
             PointAnimationUsingPath centerPointAnimation = new PointAnimationUsingPath
             {
                 PathGeometry = animationPath,
@@ -212,26 +262,47 @@ namespace Physics.ViewModels
 
             Storyboard pathAnimationStoryboard = new Storyboard
             {
-                RepeatBehavior = RepeatBehavior.Forever
+                //RepeatBehavior = RepeatBehavior.Forever
             };
             pathAnimationStoryboard.Children.Add(centerPointAnimation);
-
             objectPath.Loaded += delegate (object sender, RoutedEventArgs e)
             {
+                pathAnimationStoryboard.Completed += delegate (object s, EventArgs ee)
+                {
+                    PathAnimationStoryboard_Completed(s, ee, objectPath, arcPath, trajectory);
+                };
                 pathAnimationStoryboard.Begin(Canvas);
             };
         }
-        private void DrawResultLabel(Trajectory trajectory, double multiplier, PolyBezierSegment pBezierSegment)
+        private void PathAnimationStoryboard_Completed(object sender, EventArgs e, Path objectPath, Path arcPath, Trajectory trajectory)
+        {
+            Canvas.Children.Remove(objectPath);
+            Canvas.Children.Remove(arcPath);
+            CalculateImpactOnCastle(trajectory);
+        }
+        private bool ContainedPoint(Point point)
+        {
+            return CastleRect.Contains(new Point(point.X * 10, point.Y * 10));
+        }
+        private void CalculateImpactOnCastle(Trajectory trajectory)
+        {
+            if (trajectory.Points.Any(ContainedPoint))
+            {
+                Point pointOfImpact = trajectory.Points.First(ContainedPoint);
+                Canvas.Children.Remove(Castle);
+            }
+        }
+        private void DrawResultLabel(double airTime, double multiplier, PolyBezierSegment pBezierSegment)
         {
             Point endX = pBezierSegment.Points[pBezierSegment.Points.Count - 1];
             Label textBlock = new Label()
             {
-                Content = $"X: {endX.X / multiplier}m, Airtime: {trajectory.AirTime}s",
-                RenderTransform = new ScaleTransform() { ScaleY = -1 }
+                Content = $"X: {endX.X / multiplier}m, Airtime: {airTime}s",
+                RenderTransform = FlippedTransform
             };
             Canvas.SetLeft(textBlock, endX.X / 2);
             Canvas.SetTop(textBlock, -30);
-            Calculations.Add($"X: {Math.Round(endX.X / multiplier, 4)}m, Airtime: {trajectory.AirTime}s");
+            Calculations.Add($"X: {Math.Round(endX.X / multiplier, 4)}m, Airtime: {airTime}s");
         }
         private static void DisplayTrajectory(Trajectory trajectory, double velocity, double angle, double initialHeight = 0, double trajectorySteps = 50)
         {
@@ -239,18 +310,22 @@ namespace Physics.ViewModels
             Debug.WriteLine($"-- Velocity: {velocity} m/s, Angle: {angle} degrees, Initial height: {initialHeight} meters, Vector steps: {trajectorySteps} --");
             Debug.WriteLine($"Distance travelled: {trajectory.Distance}m, Total time spent in air: {trajectory.AirTime}s, Angle of impact: {trajectory.ImpactAngle} degrees.");
             double x = 0;
-            foreach (Vector item in trajectory.Vectors)
+            foreach (Point item in trajectory.Points)
             {
                 Debug.WriteLine($"{x}: X: {item.X}, Y: {item.Y}, Current time in air: {x++ * (trajectory.AirTime / trajectorySteps)}s");
             }
         }
-        private void DrawLine(PathGeometry pathGeometry, Brush brush)
+        private Path DrawLine(PathGeometry pathGeometry, Brush brush)
         {
-            Path arcPath = new Path();
-            arcPath.Stroke = brush;
-            arcPath.StrokeThickness = 1;
-            arcPath.Data = pathGeometry;
+            Path arcPath = new Path
+            {
+                Stroke = brush,
+                StrokeThickness = 1,
+                //StrokeDashArray = new DoubleCollection { 10 },
+                Data = pathGeometry
+            };
             Canvas.Children.Add(arcPath);
+            return arcPath;
         }
         private void DrawXYAxisNumbers()
         {
@@ -259,7 +334,7 @@ namespace Physics.ViewModels
                 Label label = new Label
                 {
                     Content = i,
-                    RenderTransform = new ScaleTransform() { ScaleY = -1 }
+                    RenderTransform = FlippedTransform
                 };
                 Canvas.SetLeft(label, -30);
                 Canvas.SetTop(label, (i * 8) + 12.5);
@@ -267,7 +342,7 @@ namespace Physics.ViewModels
                 Label label2 = new Label
                 {
                     Content = i,
-                    RenderTransform = new ScaleTransform() { ScaleY = -1 }
+                    RenderTransform = FlippedTransform
                 };
                 Canvas.SetLeft(label2, (i * 8) - 12.5);
                 Canvas.SetTop(label2, -10);
@@ -280,10 +355,10 @@ namespace Physics.ViewModels
         private void DoCalculateTrajectoryCommand()
         {
             Trajectory trajectoryNoDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectory(Velocity, Angle, InitialHeight);
-            Trajectory trajectoryDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectoryWithDrag(new CustomProjectile(Mass, Diameter, InitialHeight, DragCoefficient), Velocity, Angle, InitialHeight);
+            //Trajectory trajectoryDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectoryWithDrag(new CustomProjectile(Mass, Diameter, InitialHeight, DragCoefficient), Velocity, Angle, InitialHeight);
             
             AnimateTrajectory(trajectoryNoDrag, Counter + "nodrag", Brushes.Black);
-            AnimateTrajectory(trajectoryDrag, Counter + "drag", Brushes.Red);
+            //AnimateTrajectory(trajectoryDrag, Counter + "drag", Brushes.Red);
             Counter++;
         }
         private bool CanDoCalculateTrajectoryCommand()

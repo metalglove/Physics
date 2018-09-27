@@ -19,7 +19,7 @@ namespace Physics.Services
         /// <param name="trajectorySteps">the amount of steps a trajectory needs to be calculated for.</param>
         public Trajectory CalculateTrajectory(double velocity, double angle, double initialHeight = 0, double trajectorySteps = 1000)
         {
-            VectorCollection vectors = new VectorCollection(); // vectors of trajectory
+            PointCollection vectors = new PointCollection(); // vectors of trajectory
             double totalTime = 0; // total time in air in seconds
             double distance = 0; // total distance travelled in meters on X-axis
             angle = DegreesToRadians(angle); // degrees to radians
@@ -46,7 +46,7 @@ namespace Physics.Services
         }
         public Trajectory CalculateTrajectoryV2(double velocity, double angle, double initialHeight = 0)
         {
-            VectorCollection vectors = new VectorCollection(); // vectors of trajectory
+            PointCollection vectors = new PointCollection(); // vectors of trajectory
             double totalTime = 0; // total time in air in seconds
             double distance = 0; // total distance travelled in meters on X-axis
             angle = DegreesToRadians(angle); // degrees to radians
@@ -82,8 +82,8 @@ namespace Physics.Services
         /// <param name="trajectorySteps">the amount of steps a trajectory needs to be calculated for.</param>
         public Trajectory CalculateTrajectoryWithDrag(IProjectile projectile, double velocity, double angle, double initialHeight = 0)
         {
-            VectorCollection vectors = new VectorCollection();
-            vectors.Add(new Vector(0, initialHeight)); // adds the first position
+            PointCollection vectors = new PointCollection();
+            vectors.Add(new Point(0, initialHeight)); // adds the first position
             angle = DegreesToRadians(angle);
             double totalTime = 0;
             double xVelocity = velocity * Math.Cos(angle);
@@ -109,17 +109,17 @@ namespace Physics.Services
             return new Trajectory(vectors, Math.Round(totalTime, 4), Math.Round(impactAngle, 4), Math.Round(x, 4));
         }
         
-        private static Vector CalculateVector(double velocity, double angle, double initialHeight, double currentTime)
+        private static Point CalculateVector(double velocity, double angle, double initialHeight, double currentTime)
         {
             double xVector = velocity * currentTime * Math.Cos(angle);
             double yVector = initialHeight + (velocity * currentTime * Math.Sin(angle)) - 0.5 * gravity * (currentTime * currentTime);
-            return new Vector(xVector, yVector);
+            return new Point(xVector, yVector);
         }
-        private static Vector CalculateVectorWithDrag(double xVelocity, double yVelocity, ref double x, ref double y, double dt, int i, double ax, double ay)
+        private static Point CalculateVectorWithDrag(double xVelocity, double yVelocity, ref double x, ref double y, double dt, int i, double ax, double ay)
         {
             x = x + xVelocity * dt + ax * dt * dt;
             y = y + yVelocity * dt + ay * dt * dt;
-            return new Vector(x, y);
+            return new Point(x, y);
         }
         private static double CalculateImpactAngle(double velocity, double angle, double temp)
         {
