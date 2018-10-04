@@ -7,207 +7,230 @@
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewModels:ProjectileLauncherViewModel, IsDesignTimeCreatable=True}"
              Height="900" Width="1200">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="booleanToVisibiltyConverter"/>
+    </UserControl.Resources>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="875"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Grid Grid.Column="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="75"/>
-                <ColumnDefinition Width="800"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="800"/>
-                <RowDefinition Height="75"/>
-            </Grid.RowDefinitions>
-            <ContentControl Grid.Column="1" Grid.Row="0" Width="800" Height="800" Content="{Binding Canvas, UpdateSourceTrigger=PropertyChanged}"/>
-            <Grid Grid.Column="1" Grid.Row="0" Width="800" Height="800" ShowGridLines="True" Opacity="0.2">
+        <Grid Visibility="{Binding IsConnected, Converter={StaticResource booleanToVisibiltyConverter}}">
+            <Grid HorizontalAlignment="Stretch" Width="400" Height="50">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="IP address of EV3: " FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding IpAddress, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button Grid.Row="0" Grid.Column="2" Content="Connect" Command="{Binding ConnectToEV3Command, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Foreground="Red" Text="{Binding ErrorMessage, UpdateSourceTrigger=PropertyChanged}"/>
             </Grid>
-            <TextBlock Grid.Column="1" Grid.Row="1" FontWeight="Bold" FontSize="20" Text="{Binding XTitle, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
-            <TextBlock Grid.Column="0" Grid.Row="0" FontWeight="Bold" FontSize="20" Text="{Binding YTitle, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" HorizontalAlignment="Center" Width="300" MaxWidth="300" TextAlignment="Center">
-                <TextBlock.RenderTransform>
-                    <RotateTransform Angle="180"/>
-                </TextBlock.RenderTransform>
-                <TextBlock.LayoutTransform>
-                    <RotateTransform Angle="90"/>
-                </TextBlock.LayoutTransform>
-                <TextBlock.RenderTransformOrigin>
-                    0.0,5.55
-                </TextBlock.RenderTransformOrigin>
-            </TextBlock>
         </Grid>
-        <StackPanel Grid.Column="1">
-            <Grid HorizontalAlignment="Stretch">
+        <Grid Visibility="{Binding IsNotConnected, Converter={StaticResource booleanToVisibiltyConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="875"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="75"/>
+                    <ColumnDefinition Width="800"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Mass (kg):" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" Text="{Binding Mass, UpdateSourceTrigger=PropertyChanged}"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="800"/>
+                    <RowDefinition Height="75"/>
+                </Grid.RowDefinitions>
+                <ContentControl Grid.Column="1" Grid.Row="0" Width="800" Height="800" Content="{Binding Canvas, UpdateSourceTrigger=PropertyChanged}"/>
+                <Grid Grid.Column="1" Grid.Row="0" Width="800" Height="800" ShowGridLines="True" Opacity="0.2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                </Grid>
+                <TextBlock Grid.Column="1" Grid.Row="1" FontWeight="Bold" FontSize="20" Text="{Binding XTitle, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Column="0" Grid.Row="0" FontWeight="Bold" FontSize="20" Text="{Binding YTitle, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" HorizontalAlignment="Center" Width="300" MaxWidth="300" TextAlignment="Center">
+                    <TextBlock.RenderTransform>
+                        <RotateTransform Angle="180"/>
+                    </TextBlock.RenderTransform>
+                    <TextBlock.LayoutTransform>
+                        <RotateTransform Angle="90"/>
+                    </TextBlock.LayoutTransform>
+                    <TextBlock.RenderTransformOrigin>
+                        0.0,5.55
+                    </TextBlock.RenderTransformOrigin>
+                </TextBlock>
             </Grid>
-            <Grid HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Diameter (m):" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" Text="{Binding Diameter, UpdateSourceTrigger=PropertyChanged}"/>
-            </Grid>
-            <Grid HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Velocity (m/s):" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" Text="{Binding Velocity, UpdateSourceTrigger=PropertyChanged}"/>
-            </Grid>
-            <Grid HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Angle (degrees):" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" Text="{Binding Angle, UpdateSourceTrigger=PropertyChanged}"/>
-            </Grid>
-            <Grid HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Initial height (m):" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" Text="{Binding InitialHeight, UpdateSourceTrigger=PropertyChanged}"/>
-            </Grid>
-            <Grid HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Trajectory steps:" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" Text="{Binding TrajectorySteps, UpdateSourceTrigger=PropertyChanged}"/>
-            </Grid>
-            <Grid HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="X-Title:" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" Text="{Binding XTitle, UpdateSourceTrigger=PropertyChanged}"/>
-            </Grid>
-            <Grid HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Y-Title:" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" Text="{Binding YTitle, UpdateSourceTrigger=PropertyChanged}"/>
-            </Grid>
-            <Grid HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Drag coefficient:" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" Text="{Binding DragCoefficient, UpdateSourceTrigger=PropertyChanged}"/>
-            </Grid>
-            <Grid HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Count:" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" IsReadOnly="True" Text="{Binding Counter, UpdateSourceTrigger=PropertyChanged}"/>
-            </Grid>
-            <Button Content="Calculate trajectory" Command="{Binding CalculateTrajectoryCommand}"/>
-            <ScrollViewer Height="600">
-                <ListView ItemsSource="{Binding Calculations}">
+            <StackPanel Grid.Column="1">
+                <!--<Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Mass (kg):" FontWeight="Bold"/>
+                    <TextBox Grid.Column="1" Text="{Binding Mass, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Diameter (m):" FontWeight="Bold"/>
+                    <TextBox Grid.Column="1" Text="{Binding Diameter, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Trajectory steps:" FontWeight="Bold"/>
+                    <TextBox Grid.Column="1" Text="{Binding TrajectorySteps, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="X-Title:" FontWeight="Bold"/>
+                    <TextBox Grid.Column="1" Text="{Binding XTitle, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Y-Title:" FontWeight="Bold"/>
+                    <TextBox Grid.Column="1" Text="{Binding YTitle, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Drag coefficient:" FontWeight="Bold"/>
+                    <TextBox Grid.Column="1" Text="{Binding DragCoefficient, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Initial height (m):" FontWeight="Bold"/>
+                    <TextBox Grid.Column="1" Text="{Binding InitialHeight, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>-->
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Velocity (m/s):" FontWeight="Bold"/>
+                    <TextBox Grid.Column="1" Text="{Binding Velocity, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Angle (degrees):" FontWeight="Bold"/>
+                    <TextBox Grid.Column="1" Text="{Binding Angle, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Count:" FontWeight="Bold"/>
+                    <TextBox Grid.Column="1" IsReadOnly="True" Text="{Binding Counter, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+                <Button Content="Ready" Command="{Binding ReadyProjectileCommand, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button Content="Launch" Command="{Binding LaunchProjectileCommand, UpdateSourceTrigger=PropertyChanged}"/>
+                <ScrollViewer Height="706">
+                    <ListView ItemsSource="{Binding Calculations}">
 
-                </ListView>
-            </ScrollViewer>
-        </StackPanel>
+                    </ListView>
+                </ScrollViewer>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

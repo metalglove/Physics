@@ -2,7 +2,9 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -21,12 +23,14 @@ namespace Physics.ViewModels
         private const string PROJECT_DIRECTORY_PATH = "pack://application:,,,/Physics;component";
         private const int CANVAS_SIZE = 800;
         private const int PROJECTILE_SIZE = 10;
-        private string _xTitle, _yTitle;
+        private string _xTitle, _yTitle, _ipAddress;
         private int _counter;
         private double _mass, _diameter, _dragCoefficient, _velocity, _angle, _initialHeight, _trajectorySteps;
         private Canvas _canvas;
         private ObservableCollection<string> _calculations;
         private Rectangle _castle;
+        private ProjectileMotionService _projectileMotionService;
+        private EV3TcpService _EV3TcpService;
         #endregion Fields
 
         #region Properties
@@ -90,6 +94,7 @@ namespace Physics.ViewModels
             set
             {
                 _velocity = value;
+                LaunchProjectileCommand.RaiseCanExecuteChanged();
                 RaisePropertyChanged();
             }
         }
@@ -99,6 +104,7 @@ namespace Physics.ViewModels
             set
             {
                 _angle = value;
+                LaunchProjectileCommand.RaiseCanExecuteChanged();
                 RaisePropertyChanged();
             }
         }
@@ -167,17 +173,41 @@ namespace Physics.ViewModels
                 RaisePropertyChanged();
             }
         }
+        public bool IsConnected => _EV3TcpService.IsConnected;
+        public bool IsNotConnected => !_EV3TcpService.IsConnected;
+        public string ErrorMessage => _EV3TcpService.ErrorMessage;
+        public string IpAddress
+        {
+            get => _ipAddress;
+            set
+            {
+                _ipAddress = value ?? (_ipAddress = "");
+                RaisePropertyChanged();
+                ConnectToEV3Command.RaiseCanExecuteChanged();
+            }
+        }
         private static ScaleTransform FlippedTransform => new ScaleTransform() { ScaleY = -1 };
+        public Trajectory CurrentTrajectory { get; private set; }
         #endregion Properties
 
         #region Commands
-        public DelegateCommand CalculateTrajectoryCommand { get; private set; }
+        public DelegateCommand ReadyProjectileCommand { get; private set; }
+        public DelegateCommand LaunchProjectileCommand { get; private set; }
+        public DelegateCommand ConnectToEV3Command { get; private set; }
         #endregion Commands
 
         public ProjectileLauncherViewModel()
         {
+
+        }
+        public ProjectileLauncherViewModel(ProjectileMotionService projectileMotionService, EV3TcpService _EV3TcpService)
+        {
             NameScope.SetNameScope(Canvas, new NameScope());
-            CalculateTrajectoryCommand = new DelegateCommand(DoCalculateTrajectoryCommand, CanDoCalculateTrajectoryCommand);
+            _projectileMotionService = projectileMotionService;
+            this._EV3TcpService = _EV3TcpService;
+            ConnectToEV3Command = new DelegateCommand(DoConnectToEV3Command, CanDoConnectToEV3Command);
+            LaunchProjectileCommand = new DelegateCommand(DoLaunchProjectileCommand, CanDoLaunchProjectileCommand);
+            ReadyProjectileCommand = new DelegateCommand(DoReadyProjectileCommand, CanDoReadyProjectileCommand);
             SetDefaults();
             DrawXYAxisNumbers();
         }
@@ -206,7 +236,7 @@ namespace Physics.ViewModels
                 Height = 100,
                 Fill = new ImageBrush(new BitmapImage(new Uri(PROJECT_DIRECTORY_PATH + "/Images/castle.png", UriKind.Absolute)))
             };
-            Canvas.SetLeft(Castle, CANVAS_SIZE - 200);
+            Canvas.SetLeft(Castle, CANVAS_SIZE - 100);
             Canvas.SetTop(Castle, Castle.Height);
             Canvas.Children.Add(Castle);
         }
@@ -352,18 +382,43 @@ namespace Physics.ViewModels
         #endregion Methods
 
         #region Command Methods
-        private void DoCalculateTrajectoryCommand()
+        private void DoConnectToEV3Command()
         {
-            Trajectory trajectoryNoDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectory(Velocity, Angle, InitialHeight);
-            //Trajectory trajectoryDrag = serviceProvider.GetService<ProjectileMotionService>().CalculateTrajectoryWithDrag(new CustomProjectile(Mass, Diameter, InitialHeight, DragCoefficient), Velocity, Angle, InitialHeight);
-            
-            AnimateTrajectory(trajectoryNoDrag, Counter + "nodrag", Brushes.Black);
-            //AnimateTrajectory(trajectoryDrag, Counter + "drag", Brushes.Red);
-            Counter++;
+            _EV3TcpService.Connect(IpAddress);
+            RaisePropertyChanged("ErrorMessage");
+            RaisePropertyChanged("IsConnected");
+            RaisePropertyChanged("IsNotConnected");
+            Task.Run(() => _EV3TcpService.StartReceivingMessages()); // TODO: check
         }
-        private bool CanDoCalculateTrajectoryCommand()
+        private bool CanDoConnectToEV3Command()
         {
-            return true;
+            if (string.IsNullOrWhiteSpace(IpAddress))
+                return false;
+            return IpAddress.Split('.').Length == 4 && IPAddress.TryParse(IpAddress, out IPAddress iPAddress);
+        }
+        private void DoLaunchProjectileCommand()
+        {
+            _EV3TcpService.SendMessage("GO");
+            AnimateTrajectory(CurrentTrajectory, Counter + "drag", Brushes.Red);
+        }
+        private bool CanDoLaunchProjectileCommand()
+        {
+            return Velocity >= 1 && Velocity <= 10 && Angle >= 10 && Angle <= 80 && IsConnected;
+        }
+        private void DoReadyProjectileCommand()
+        {
+            //Trajectory trajectoryNoDrag = _projectileMotionService.CalculateTrajectory(Velocity, Angle, InitialHeight);
+            CurrentTrajectory = _projectileMotionService.CalculateTrajectoryWithDrag(new CustomProjectile(Mass, Diameter, InitialHeight, DragCoefficient), Velocity, Angle, InitialHeight);
+
+            //AnimateTrajectory(trajectoryNoDrag, Counter + "nodrag", Brushes.Black);
+            _EV3TcpService.SendMessage($"Launch {Angle} {Velocity}");
+            
+            Counter++;
+            LaunchProjectileCommand.RaiseCanExecuteChanged();
+        }
+        private bool CanDoReadyProjectileCommand()
+        {
+            return Velocity >= 1 && Velocity <= 10 && Angle >= 10 && Angle <= 80 && IsConnected;
         }
         #endregion Command Methods
     }

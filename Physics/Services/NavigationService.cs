@@ -51,5 +51,23 @@ namespace Physics.Services
             CurrentViewModel = (ViewModel)_viewModels.Single(vm => vm.GetType() == typeof(ViewModel));
             Debug.WriteLine(String.Format("Navigated to: {0}", typeof(ViewModel).Name));
         }
+        public void NavigateTo<ViewModel>(string viewName) where ViewModel : ViewModelBase
+        {
+            if (!_viewModels.Any(vm => vm.GetType() == typeof(ViewModel)))
+            {
+                ViewModel viewModel = Activator.CreateInstance<ViewModel>();
+                viewModel.ViewTitle = viewName;
+                _viewModels.Add(viewModel);
+                Debug.WriteLine($"New ViewModel registered: {typeof(ViewModel).Name}");
+            }
+
+            CurrentViewModel = (ViewModel)_viewModels.Single(vm => vm.GetType() == typeof(ViewModel) && vm.ViewTitle == viewName);
+            Debug.WriteLine($"Navigated to: {typeof(ViewModel).Name}");
+        }
+        public void Register(ViewModelBase viewModel)
+        {
+            ViewModels.Add(viewModel);
+            Debug.WriteLine($"New ViewModel registered: {viewModel.GetType().Name}");
+        }
     }
 }

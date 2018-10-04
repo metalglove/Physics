@@ -7,7 +7,7 @@ namespace Physics.Helpers
         protected static ServiceProvider serviceProvider = App.serviceProvider;
         protected static NavigationService navigationService = serviceProvider.GetService<NavigationService>();
 
-        public string ViewTitle { get; protected set; }
+        public string ViewTitle { get; set; }
 
         public ViewModelBase()
         {

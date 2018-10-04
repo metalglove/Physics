@@ -15,7 +15,8 @@ namespace Physics
 
             NavigationService navigationService = serviceProvider.GetService<NavigationService>();
             mainWindow.DataContext = navigationService;
-
+            ProjectileLauncherViewModel projectileLauncherViewModel = new ProjectileLauncherViewModel(serviceProvider.GetService<ProjectileMotionService>(), serviceProvider.GetService<EV3TcpService>());
+            navigationService.Register(projectileLauncherViewModel);
             navigationService.NavigateTo<ProjectileLauncherViewModel>();
             mainWindow.Show();
         }

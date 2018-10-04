@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EV3WifiLib">
+      <HintPath>.\EV3WifiLib.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -61,8 +64,10 @@
     <Compile Include="Helpers\ViewModelBase.cs" />
     <Compile Include="Models\Cannonball.cs" />
     <Compile Include="Models\CustomProjectile.cs" />
+    <Compile Include="Models\EV3Message.cs" />
     <Compile Include="Models\IProjectile.cs" />
     <Compile Include="Models\Trajectory.cs" />
+    <Compile Include="Services\EV3TcpService.cs" />
     <Compile Include="Services\NavigationService.cs" />
     <Compile Include="Services\ProjectileMotionService.cs" />
     <Compile Include="ViewModels\ProjectileLauncherViewModel.cs" />
