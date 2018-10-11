@@ -64,7 +64,6 @@
     <Compile Include="Helpers\ViewModelBase.cs" />
     <Compile Include="Models\Cannonball.cs" />
     <Compile Include="Models\CustomProjectile.cs" />
-    <Compile Include="Models\EV3Message.cs" />
     <Compile Include="Models\IProjectile.cs" />
     <Compile Include="Models\Trajectory.cs" />
     <Compile Include="Services\EV3TcpService.cs" />

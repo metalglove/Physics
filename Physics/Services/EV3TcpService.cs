@@ -1,23 +1,21 @@
 ﻿using Physics.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EV3WifiLib;
 using System.Net;
-using Physics.Models;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Physics.Services
 {
-    public class EV3TcpService : BindableBase, IService
+    public class EV3TcpService : BindableBase, IService, IDisposable
     {
         private EV3Wifi _EV3Wifi;
-        private ObservableCollection<EV3Message> _messages;
+        private ObservableCollection<string> _messages;
         private string _errorMessage;
+        private volatile bool _isConnected = false;
+
+        public EventHandler<string> MessagesChanged;
 
         public string ErrorMessage
         {
@@ -30,10 +28,10 @@ namespace Physics.Services
             }
         }
 
-        public bool IsConnected => _EV3Wifi.isConnected;
-        public ObservableCollection<EV3Message> Messages
+        public bool IsConnected => _isConnected;
+        public ObservableCollection<string> Messages
         {
-            get => _messages ?? (_messages = new ObservableCollection<EV3Message>());
+            get => _messages;
             set
             {
                 _messages = value;
@@ -44,11 +42,16 @@ namespace Physics.Services
         public EV3TcpService()
         {
             _EV3Wifi = new EV3Wifi();
+            _messages = new ObservableCollection<string>();
+        }
+        ~EV3TcpService()
+        {
+            Dispose();
         }
 
         public bool Connect(string ipAddress)
         {
-            _EV3Wifi.Disconnect(); //
+            Disconnect();
             if (!IPAddress.TryParse(ipAddress, out IPAddress address))
             {
                 ErrorMessage = "Fill in valid IP address of EV3";
@@ -57,12 +60,12 @@ namespace Physics.Services
             {
                 // start listener  receivedMessagesListBox.Items.Clear();
                 // start listener timer messageReceiveTimer.Start();
-
+                _isConnected = true;
                 Debug.WriteLine("Connected successfully!");
             }
             else
             {
-                _EV3Wifi.Disconnect();
+                Disconnect();
                 ErrorMessage = "Failed to connect to EV3 with IP address " + ipAddress;
             }
             RaisePropertyChanged("IsConnected");
@@ -70,37 +73,42 @@ namespace Physics.Services
         }
         public void Disconnect()
         {
-            _EV3Wifi.Disconnect();
+            if(_isConnected)
+            {
+                Thread.Sleep(100);
+                _EV3Wifi.Disconnect();
+                _isConnected = false;
+                Debug.WriteLine("Disconnected successfully!");
+            }
         }
         public void StartReceivingMessages()
         {
-            while (IsConnected)
+            while (_isConnected)
             {
                 ReceiveMessage();
+                Thread.Sleep(100);
             }
         }
         public void ReceiveMessage()
         {
-            if (_EV3Wifi.isConnected)
+            if (_isConnected)
             {
                 // EV3: ReceiveMessage is asynchronous so it actually gets the message read at the previous call to ReceiveMessage
                 //      and it triggers reading the next message from the specified mailbox.
                 //      Due to the simple implementation the message read does not contain information of the mailbox it came from.
                 //      Therefore the advise is to only use one mailbox to read from: EV3_OUTBOX0.
                 string strMessage = _EV3Wifi.ReceiveMessage("EV3_OUTBOX0");
-                if (strMessage != "")
+                if (strMessage != "" && strMessage != "??" && strMessage != "?" && strMessage != "m")
                 {
-                    string[] data = strMessage.Split(' ');
-                    if (data.Length == 2)
-                    {
-                        Messages.Add(new EV3Message(data[0], data[1]));
-                    }
+                    Messages.Add(strMessage);
+                    MessagesChanged.Invoke(this, strMessage);
+                    Debug.WriteLine($"[{_messages.Count}] {strMessage}");
                 }
             }
         }
         public bool SendMessage(string message)
         {
-            if (_EV3Wifi.isConnected)
+            if (_isConnected)
             {
                 _EV3Wifi.SendMessage(message, "0");
             }
@@ -109,6 +117,11 @@ namespace Physics.Services
                 ErrorMessage = "The EV3 is not connected.";
             }
             return IsConnected;
+        }
+
+        public void Dispose()
+        {
+            Disconnect();
         }
     }
 }

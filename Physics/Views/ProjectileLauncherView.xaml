@@ -225,6 +225,7 @@
                 </Grid>
                 <Button Content="Ready" Command="{Binding ReadyProjectileCommand, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Content="Launch" Command="{Binding LaunchProjectileCommand, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button Content="Disconnect" Command="{Binding DisconnectCommand, UpdateSourceTrigger=PropertyChanged}"/>
                 <ScrollViewer Height="706">
                     <ListView ItemsSource="{Binding Calculations}">
 
