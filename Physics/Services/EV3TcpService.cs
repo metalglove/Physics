@@ -9,6 +9,7 @@ using System.Net;
 using Physics.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace Physics.Services
 {
@@ -25,6 +26,7 @@ namespace Physics.Services
             {
                 _errorMessage = value;
                 RaisePropertyChanged();
+                RaisePropertyChanged("IsConnected");
             }
         }
 
@@ -53,11 +55,10 @@ namespace Physics.Services
             }
             else if (_EV3Wifi.Connect("1234", ipAddress))
             {
-
                 // start listener  receivedMessagesListBox.Items.Clear();
                 // start listener timer messageReceiveTimer.Start();
 
-                
+                Debug.WriteLine("Connected successfully!");
             }
             else
             {

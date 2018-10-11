@@ -11,7 +11,7 @@
         <BooleanToVisibilityConverter x:Key="booleanToVisibiltyConverter"/>
     </UserControl.Resources>
     <Grid>
-        <Grid Visibility="{Binding IsConnected, Converter={StaticResource booleanToVisibiltyConverter}}">
+        <Grid Visibility="{Binding IsNotConnected, Converter={StaticResource booleanToVisibiltyConverter}}">
             <Grid HorizontalAlignment="Stretch" Width="400" Height="50">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -28,7 +28,7 @@
                 <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Foreground="Red" Text="{Binding ErrorMessage, UpdateSourceTrigger=PropertyChanged}"/>
             </Grid>
         </Grid>
-        <Grid Visibility="{Binding IsNotConnected, Converter={StaticResource booleanToVisibiltyConverter}}">
+        <Grid Visibility="{Binding IsConnected, Converter={StaticResource booleanToVisibiltyConverter}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="875"/>
                 <ColumnDefinition Width="*"/>
