@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Media;
 using System.Net;
 using System.Reflection;
 using System.Threading;
@@ -36,6 +37,7 @@ namespace Physics.ViewModels
         private List<string> names = new List<string>();
         private bool _isReady;
         private bool _isBusy;
+        private Random _randomBuild = new Random();
         #endregion Fields
 
         #region Properties
@@ -267,8 +269,8 @@ namespace Physics.ViewModels
             Angle = 42;
             InitialHeight = 0;
             TrajectorySteps = 1000;
-            XTitle = "X - Range in meters";
-            YTitle = "Y - Height in meters";
+            XTitle = "X - Range in centimeters"; //X - Range in meters
+            YTitle = "Y - Height in centimeters"; // Y - Height in meters
             BuildCastle();
         }
         private void BuildCastle()
@@ -280,7 +282,8 @@ namespace Physics.ViewModels
                 Height = 100,
                 Fill = new ImageBrush(new BitmapImage(new Uri(PROJECT_DIRECTORY_PATH + "/Images/castle.png", UriKind.Absolute)))
             };
-            Canvas.SetLeft(Castle, CANVAS_SIZE - 100);
+            int location = _randomBuild.Next(500, 1460);
+            Canvas.SetLeft(Castle, location - 100);
             Canvas.SetTop(Castle, Castle.Height);
             Canvas.Children.Add(Castle);
         }
@@ -297,7 +300,7 @@ namespace Physics.ViewModels
             Path objectPath = new Path
             {
                 Data = animatedObjectGeometry,
-                Fill = new ImageBrush(new BitmapImage(new Uri(PROJECT_DIRECTORY_PATH + "/Images/cannonball.png", UriKind.Absolute)))
+                Fill = new ImageBrush(new BitmapImage(new Uri(PROJECT_DIRECTORY_PATH + "/Images/Projectile.png", UriKind.Absolute)))
             };
 
             Canvas.Children.Add(objectPath);
@@ -347,6 +350,7 @@ namespace Physics.ViewModels
                     PathAnimationStoryboard_Completed(s, ee, objectPath, arcPath, trajectory);
                 };
                 pathAnimationStoryboard.Begin(Canvas);
+                new SoundPlayer(Properties.Resources.launch).Play();
             };
         }
         private void PathAnimationStoryboard_Completed(object sender, EventArgs e, Path objectPath, Path arcPath, Trajectory trajectory)
@@ -365,6 +369,7 @@ namespace Physics.ViewModels
             {
                 Point pointOfImpact = trajectory.Points.First(ContainedPoint);
                 Canvas.Children.Remove(Castle);
+                new SoundPlayer(Properties.Resources.impact).Play();
             }
         }
         private void DrawResultLabel(double airTime, double multiplier, PolyBezierSegment pBezierSegment)
@@ -404,24 +409,27 @@ namespace Physics.ViewModels
         }
         private void DrawXYAxisNumbers()
         {
-            for (double i = 0; i <= 100; i += 10)
+            for (double i = 0; i <= 180; i += 10)
             {
-                Label label = new Label
+                if (i <= 100)
+                {
+                    Label ylabel = new Label
+                    {
+                        Content = i,
+                        RenderTransform = FlippedTransform
+                    };
+                    Canvas.SetLeft(ylabel, -30);
+                    Canvas.SetTop(ylabel, (i * 8) + 12.5);
+                    Canvas.Children.Add(ylabel);
+                }
+                Label xlabel = new Label
                 {
                     Content = i,
                     RenderTransform = FlippedTransform
                 };
-                Canvas.SetLeft(label, -30);
-                Canvas.SetTop(label, (i * 8) + 12.5);
-                Canvas.Children.Add(label);
-                Label label2 = new Label
-                {
-                    Content = i,
-                    RenderTransform = FlippedTransform
-                };
-                Canvas.SetLeft(label2, (i * 8) - 12.5);
-                Canvas.SetTop(label2, -10);
-                Canvas.Children.Add(label2);
+                Canvas.SetLeft(xlabel, (i * 8) - 12.5);
+                Canvas.SetTop(xlabel, -10);
+                Canvas.Children.Add(xlabel);
             }
         }
         private void VerifyCommandMessage(object sender, string e)

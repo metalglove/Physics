@@ -6,7 +6,7 @@
              xmlns:viewModels="clr-namespace:Physics.ViewModels"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewModels:ProjectileLauncherViewModel, IsDesignTimeCreatable=True}"
-             Height="900" Width="1200">
+             Height="900" Width="1920">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="booleanToVisibiltyConverter"/>
     </UserControl.Resources>
@@ -30,20 +30,20 @@
         </Grid>
         <Grid Visibility="{Binding IsConnected, Converter={StaticResource booleanToVisibiltyConverter}}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="875"/>
+                <ColumnDefinition Width="1575"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="75"/>
-                    <ColumnDefinition Width="800"/>
+                    <ColumnDefinition Width="1500"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="800"/>
                     <RowDefinition Height="75"/>
                 </Grid.RowDefinitions>
-                <ContentControl Grid.Column="1" Grid.Row="0" Width="800" Height="800" Content="{Binding Canvas, UpdateSourceTrigger=PropertyChanged}"/>
-                <Grid Grid.Column="1" Grid.Row="0" Width="800" Height="800" ShowGridLines="True" Opacity="0.2">
+                <ContentControl Grid.Column="1" Grid.Row="0" Width="1500" Height="800" Content="{Binding Canvas, UpdateSourceTrigger=PropertyChanged}"/>
+                <Grid Grid.Column="1" Grid.Row="0" Width="1500" Height="800" ShowGridLines="True" Opacity="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -226,7 +226,7 @@
                 <Button Content="Ready" Command="{Binding ReadyProjectileCommand, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Content="Launch" Command="{Binding LaunchProjectileCommand, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Content="Disconnect" Command="{Binding DisconnectCommand, UpdateSourceTrigger=PropertyChanged}"/>
-                <ScrollViewer Height="706">
+                <ScrollViewer Height="687">
                     <ListView ItemsSource="{Binding Calculations}">
 
                     </ListView>
