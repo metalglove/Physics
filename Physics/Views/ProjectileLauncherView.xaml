@@ -171,7 +171,7 @@
                 <Button Content="Launch" Command="{Binding LaunchProjectileCommand, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Content="Reset" Command="{Binding ResetCommand, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Content="Disconnect" Command="{Binding DisconnectCommand, UpdateSourceTrigger=PropertyChanged}"/>
-                <ScrollViewer Height="687">
+                <ScrollViewer Height="667">
                     <ListView ItemsSource="{Binding Calculations}">
 
                     </ListView>
