@@ -37,6 +37,7 @@ namespace Physics.ViewModels
         private List<string> names = new List<string>();
         private bool _isReady;
         private bool _isBusy;
+        private bool _canReset;
         private Random _randomBuild = new Random();
         #endregion Fields
 
@@ -219,6 +220,16 @@ namespace Physics.ViewModels
                 ReadyProjectileCommand.RaiseCanExecuteChanged();
             }
         }
+        public bool CanReset
+        {
+            get => _canReset;
+            set
+            {
+                _canReset = value;
+                RaisePropertyChanged();
+                ResetCommand.RaiseCanExecuteChanged();
+            }
+        }
         #endregion Properties
 
         #region Commands
@@ -226,7 +237,7 @@ namespace Physics.ViewModels
         public DelegateCommand LaunchProjectileCommand { get; private set; }
         public DelegateCommand ConnectToEV3Command { get; private set; }
         public DelegateCommand DisconnectCommand { get; private set; }
-
+        public DelegateCommand ResetCommand { get; private set; }
         #endregion Commands
 
         public ProjectileLauncherViewModel()
@@ -243,6 +254,7 @@ namespace Physics.ViewModels
             LaunchProjectileCommand = new DelegateCommand(DoLaunchProjectileCommand, CanDoLaunchProjectileCommand);
             ReadyProjectileCommand = new DelegateCommand(DoReadyProjectileCommand, CanDoReadyProjectileCommand);
             DisconnectCommand = new DelegateCommand(DoDisconnectCommand, CanDoDisconnectCommand);
+            ResetCommand = new DelegateCommand(DoResetCommand, CanDoResetCommand);
             SetDefaults();
             DrawXYAxisNumbers();
         }
@@ -257,6 +269,7 @@ namespace Physics.ViewModels
                 Canvas.UnregisterName(name);
             }
             names.Clear();
+            CanReset = false;
         }
         private void SetDefaults()
         {
@@ -440,7 +453,7 @@ namespace Physics.ViewModels
                     Application.Current.Dispatcher.Invoke(() => { IsReady = true; IsBusy = false; });
                     break;
                 case "Done":
-                    Application.Current.Dispatcher.Invoke(() => Reset());
+                    Application.Current.Dispatcher.Invoke(() => CanReset = true);
                     break;
                 default:
                     break;
@@ -488,6 +501,14 @@ namespace Physics.ViewModels
         private bool CanDoReadyProjectileCommand()
         {
             return Velocity >= 1 && Velocity <= 10 && Angle >= 1 && Angle <= 35 && IsConnected && !IsBusy && !IsReady;
+        }
+        private void DoResetCommand()
+        {
+            Reset();
+        }
+        private bool CanDoResetCommand()
+        {
+            return CanReset;
         }
         private void DoDisconnectCommand()
         {

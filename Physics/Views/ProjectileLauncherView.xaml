@@ -143,62 +143,6 @@
                 </TextBlock>
             </Grid>
             <StackPanel Grid.Column="1">
-                <!--<Grid HorizontalAlignment="Stretch">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Mass (kg):" FontWeight="Bold"/>
-                    <TextBox Grid.Column="1" Text="{Binding Mass, UpdateSourceTrigger=PropertyChanged}"/>
-                </Grid>
-                <Grid HorizontalAlignment="Stretch">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Diameter (m):" FontWeight="Bold"/>
-                    <TextBox Grid.Column="1" Text="{Binding Diameter, UpdateSourceTrigger=PropertyChanged}"/>
-                </Grid>
-                <Grid HorizontalAlignment="Stretch">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Trajectory steps:" FontWeight="Bold"/>
-                    <TextBox Grid.Column="1" Text="{Binding TrajectorySteps, UpdateSourceTrigger=PropertyChanged}"/>
-                </Grid>
-                <Grid HorizontalAlignment="Stretch">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="X-Title:" FontWeight="Bold"/>
-                    <TextBox Grid.Column="1" Text="{Binding XTitle, UpdateSourceTrigger=PropertyChanged}"/>
-                </Grid>
-                <Grid HorizontalAlignment="Stretch">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Y-Title:" FontWeight="Bold"/>
-                    <TextBox Grid.Column="1" Text="{Binding YTitle, UpdateSourceTrigger=PropertyChanged}"/>
-                </Grid>
-                <Grid HorizontalAlignment="Stretch">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Drag coefficient:" FontWeight="Bold"/>
-                    <TextBox Grid.Column="1" Text="{Binding DragCoefficient, UpdateSourceTrigger=PropertyChanged}"/>
-                </Grid>
-                <Grid HorizontalAlignment="Stretch">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Initial height (m):" FontWeight="Bold"/>
-                    <TextBox Grid.Column="1" Text="{Binding InitialHeight, UpdateSourceTrigger=PropertyChanged}"/>
-                </Grid>-->
                 <Grid HorizontalAlignment="Stretch">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -225,6 +169,7 @@
                 </Grid>
                 <Button Content="Ready" Command="{Binding ReadyProjectileCommand, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Content="Launch" Command="{Binding LaunchProjectileCommand, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button Content="Reset" Command="{Binding ResetCommand, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Content="Disconnect" Command="{Binding DisconnectCommand, UpdateSourceTrigger=PropertyChanged}"/>
                 <ScrollViewer Height="687">
                     <ListView ItemsSource="{Binding Calculations}">
