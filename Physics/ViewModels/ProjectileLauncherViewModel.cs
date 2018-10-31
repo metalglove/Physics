@@ -278,13 +278,14 @@ namespace Physics.ViewModels
             Mass = 0.8;
             Diameter = 0.3;
             DragCoefficient = 0.47;
-            Velocity = 10;
+            Velocity = 30;
             Angle = 10;
             InitialHeight = 0;
             TrajectorySteps = 1000;
             XTitle = "X - Range in centimeters"; //X - Range in meters
             YTitle = "Y - Height in centimeters"; // Y - Height in meters
             BuildCastle();
+            Canvas.Children.Clear();
         }
         private void BuildCastle()
         {
@@ -486,7 +487,7 @@ namespace Physics.ViewModels
         }
         private bool CanDoLaunchProjectileCommand()
         {
-            return Velocity >= 1 && Velocity <= 10 && Angle >= 1 && Angle <= 35 && IsConnected && IsReady && !IsBusy;
+            return Velocity >= 30 && Velocity <= 70 && Angle >= 1 && Angle <= 35 && IsConnected && IsReady && !IsBusy;
         }
         private void DoReadyProjectileCommand()
         {
@@ -500,7 +501,7 @@ namespace Physics.ViewModels
         }
         private bool CanDoReadyProjectileCommand()
         {
-            return Velocity >= 1 && Velocity <= 10 && Angle >= 1 && Angle <= 35 && IsConnected && !IsBusy && !IsReady;
+            return Velocity >= 30 && Velocity <= 70 && Angle >= 1 && Angle <= 35 && IsConnected && !IsBusy && !IsReady;
         }
         private void DoResetCommand()
         {
